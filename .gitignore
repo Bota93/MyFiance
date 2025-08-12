@@ -1,0 +1,11 @@
+# Backend (Python)
+myfiance-backend/venv/
+myfiance-backend/app/__pycache__/
+myfiance-backend/app/routers/__pycache__/
+myfiance-backend/.env
+
+# Frontend
+myfiance-frontend/node_modules/
+myfiance-frontend/.next/
+myfiance-frontend/out/
+myfiance-frontend/.env.local
