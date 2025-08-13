@@ -1,6 +1,13 @@
 // Definimos la URL base de nuestra API de FastAPI
 const BASE_URL = 'http://localhost:8000';
 
+const getAuthToken = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('authToken');
+    }
+    return null;
+};
+
 /**
  * Función para registrar un nuevo usuario.
  * @param userData - Objeto con el email y la contraseña del usuario.
@@ -51,3 +58,24 @@ export const loginUser = async (loginData: any) => {
 
     return response.json();
 };
+
+export const getTransactions = async () => {
+    const token = getAuthToken();
+    if (!token) {
+        throw new Error('No se encontró el token de autenticación.');
+    }
+
+    const response = await fetch(`${BASE_URL}/transactions/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'aplication/json',
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Error al obtener las transacciones.');
+    }
+
+    return response.json();
+}
