@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import Link from "next/link";
 import { registerUser } from '@/services/api'; // Importamos la función de la API
 
 /**
@@ -74,7 +75,7 @@ export default function RegisterPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-mb focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="tu@email.com"
                         />
                     </div>
@@ -92,17 +93,27 @@ export default function RegisterPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full p-3 border border-y-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:bg-transparent"
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:bg-transparent"
+                            placeholder="••••••••"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white p-3 rounded-mb font-semibold hover:bg-blue-700 transition-colors"
+                        className="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
                     >
                         Registrar
                     </button>
                 </form>
+
+                <p className='text-center text-sm text-gray-600 mt-4'>
+                    ¿Tienes ya cuenta?{' '}
+                    <Link href="/login" className='font-medium text-blue-600 hover:underline'>
+                        Inicia sesión aquí
+                    </Link>
+                </p>
+
+
             </div>
         </main>
     );
