@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import withAuth from "@/components/auth/withAuth";
 import { getTransactions } from "@/services/api";
+import TransactionForm from "@/components/forms/TransactionForm";
 
 /**
  * Página principal del Dashboard del usuario.
@@ -17,26 +18,43 @@ function DashboardPage() {
     // Estado para almacenar cualquier error que ocurra durante la obtención de datos
     const [error, setError] = useState('');
     
-    // useEffect se ejecuta una vez que el componente se ha montado en el cliente.
-    // Es el lugar ideal para hacer llamadas a ApIs para obtener datos iniciales.
-    useEffect(() => {
-        const fetchTransactions = async () => {
-            try {
-                const data = await getTransactions();
-                setTransactions(data);
-            } catch (err: any) {
-                setError(err.message);
-            } finally {
-                setIsLoading(false); // Oculta el mensaje de carga, da igual si tiene éxito o no
-            }
-        };
+    /**
+     * Obtiene las transacciones del usuario desde la API y actualiza el estado.
+     * Se envuelve en useCallback para memorizar la función y evitar re-creaciones innecesarias.
+     */
+    const fetchTransactions = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const data = await getTransactions();
+            setTransactions(data);
+        } catch (err: any) {
+            setError(err.message || 'Ocurrió un error inesperado.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
+    // useEffect se ejecuta una vez que el componente se monta para obtener los datos iniciales.
+    useEffect(() => {
         fetchTransactions();
-    }, []); // El array de dependencias está vacío para asegurar que el efecto se ejecute solo una vez
+    }, [fetchTransactions]);
+
+    /**
+     * Callback que se pasa al TransactionForm. Se ejecuta cuando se crea una nueva transacción
+     * para refrescar la lista de transacciones en el dashboard.
+     */
+    const handleTransactionCreated = () => {
+        fetchTransactions();
+    };
+
 
     // Renderizado condicional basado en el estado de la carga
     if (isLoading) {
         return <p className="p-8">Cargando transacciones...</p>
+    }
+
+    if (error) {
+        return <p className="p-8 text-red-500">Error: {error}</p>;
     }
 
     return (
@@ -44,6 +62,8 @@ function DashboardPage() {
             <h1 className="text-3xl font-bold text-gray-800">
                 Mi Dashboard
             </h1>
+
+            <TransactionForm onTransactionCreated={handleTransactionCreated} />
 
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-semibold mb-4"> Últimas transacciones</h2>

@@ -59,6 +59,15 @@ export const loginUser = async (loginData: any) => {
     return response.json();
 };
 
+export const getCategories = async () => {
+    const response = await fetch(`${BASE_URL}/categories/`);
+    if (!response.ok) {
+        throw new Error('Error al obtener las categorías.');
+    }
+    return response.json();
+}
+
+
 export const getTransactions = async () => {
     const token = getAuthToken();
     if (!token) {
@@ -79,3 +88,25 @@ export const getTransactions = async () => {
 
     return response.json();
 }
+
+export const createTransaction = async (transactionData : any) => {
+    const token = getAuthToken();
+    if (!token) {
+        throw new Error('No se encontró el token de autentificación.');
+    }
+
+    const response = await fetch(`${BASE_URL}/transaction/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Error al crear la transacción.');
+    }
+    return response.json();
+};
