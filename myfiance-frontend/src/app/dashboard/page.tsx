@@ -123,7 +123,6 @@ function DashboardPage() {
                                 <li key={tx.transaction_id} className="flex justify-between items-center border-b py-3 last:border-b-0 hover:bg-gray-50 transition-colors duration-150">
                                     <div>
                                         <p className="font-medium text-gray-900">{tx.description}</p>
-                                        {/* CORRECCIÓN 2: Formatear la fecha para que sea legible */}
                                         <p className="text-sm text-gray-500">{new Date(tx.transaction_date).toLocaleDateString()}</p>
                                     </div>
                                     <div className="flex items-center gap-4">
