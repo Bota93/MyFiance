@@ -1,9 +1,38 @@
+// --- (Interfaces y Tipos - Sin cambios) ---
+interface Category {
+  category_id: number;
+  category_name: string;
+}
+interface Transaction {
+  transaction_id: number;
+  description: string;
+  transaction_date: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category: Category;
+}
+type TransactionSubmitData = {
+  amount: number;
+  description: string;
+  transaction_date: string;
+  category_id: number;
+  type: 'income' | 'expense';
+}
+interface UserData {
+    email: string;
+    password?: string;
+}
+interface LoginData {
+    username: string;
+    password?: string;
+}
+interface TokenResponse {
+    access_token: string;
+    token_type: string;
+}
+
 const BASE_URL = 'http://localhost:8000';
 
-/**
- * Obtiene el toke de autenticación del localStorage
- * @returns {string | null} El token JWT o null si no se encuentra
- */
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('authToken');
@@ -11,28 +40,16 @@ const getAuthToken = () => {
   return null;
 };
 
-/**
- * Función centralizada ("interceptor") para todas las llamadas a la API.
- * Construye las cabeceras, añade el token de autenticación si existe,
- * y maneja globalmente los errores de sesión (401 Unauthorized) redirigiendo al login.
- * @param {string} endpoint - La ruta de la API a la que llamar.
- * @param {RequestInit} [options={}] - Opciones estándar de la API Fetch (method, body, etc.).
- * @returns {Promise<any>} La respuesta JSON de la API.
- * @throws {Error} Lanza un error si la petición falla o la sesión expira.
- */
+// --- apiFetch (Simplificado) ---
+// Esta función ahora solo añade el token de autorización.
 const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
+  // Clonamos los headers para no modificar el objeto original
   const headers = new Headers(options.headers);
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
-  }
-
-  // Si el cuerpo de la petición es un objeto, lo convertimos a JSON.
-  if (options.body && typeof options.body !== 'string') {
-      headers.set('Content-Type', 'application/json');
-      options.body = JSON.stringify(options.body);
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
@@ -55,29 +72,22 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   return response.json();
 };
 
-// --- Funciones de la API (Ahora más simples) ---
+// --- Funciones de la API (Corregidas) ---
 
-/**
- * Registra un nuevo usuario
- * @param {object} userData - Datos del usuario (email, password).
- * @returns {Promise<any>} El objeto del usuario creado.
- */
-export const registerUser = (userData: any) => {
+export const registerUser = (userData: UserData): Promise<UserData> => {
     return apiFetch('/users/register', {
         method: 'POST',
-        body: userData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData), // Convertimos aquí
     });
 };
 
-/**
- * Autentica a un usuario y obtiene un token de acceso
- * @param {object} loginData - Credenciales del usuario (username, password).
- * @returns {Promise<any>} Un objeto con el access_token
- */
-export const loginUser = async (loginData: any) => {
+export const loginUser = async (loginData: LoginData): Promise<TokenResponse> => {
     const formData = new URLSearchParams();
     formData.append('username', loginData.username);
-    formData.append('password', loginData.password);
+    if (loginData.password) {
+        formData.append('password', loginData.password);
+    }
     
     const response = await fetch(`${BASE_URL}/users/token`, {
         method: 'POST',
@@ -92,50 +102,28 @@ export const loginUser = async (loginData: any) => {
     return response.json();
 };
 
-/**
- * Obtiene la lista completa de categorías.
- * @returns {Promise<any>} Un array de objetos de categoría.
- */
-export const getCategories = () => apiFetch('/categories/');
+export const getCategories = (): Promise<Category[]> => apiFetch('/categories/');
 
-/**
- * Obtiene las transacciones del usuario autenticado.
- * @returns {Promise<any>} Un array de objetos de transacción
- */
-export const getTransactions = () => apiFetch('/transactions/');
+export const getTransactions = (): Promise<Transaction[]> => apiFetch('/transactions/');
 
-/**
- * Crea una nueva transacción para el usuario autenticado.
- * @param {object} transactionData - Los datos de la nueva transacción
- * @returns {Promise<any>} El objeto de la transacción creada
- */
-export const createTransaction = (transactionData: any) => {
+export const createTransaction = (transactionData: TransactionSubmitData): Promise<Transaction> => {
   return apiFetch('/transactions/', {
     method: 'POST',
-    body: transactionData,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(transactionData), // Convertimos aquí
   });
 };
 
-/**
- * Elimina una transacción específica por su ID.
- * @param {number} transactionId - El ID de la transacción a eliminar.
- * @returns {Promise<boolean>} True si la eliminiación fue exitosa
- */
-export const deleteTransaction = (transactionId: number) => {
+export const deleteTransaction = (transactionId: number): Promise<boolean> => {
   return apiFetch(`/transactions/${transactionId}`, {
     method: 'DELETE',
   });
 };
 
-/**
- * Actualiza una transacción existente.
- * @param {number} transactionId - El ID de la transacción a actualizar.
- * @param {object} transactionData - Los nuevos datos para la transacción.
- * @returns {Promise<any>} El objeto de la transacción actualizada.
- */
-export const updateTransaction = (transactionId: number, transactionData: any) => {
+export const updateTransaction = (transactionId: number, transactionData: TransactionSubmitData): Promise<Transaction> => {
   return apiFetch(`/transactions/${transactionId}`, {
     method: 'PUT',
-    body: transactionData,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(transactionData), // Convertimos aquí
   });
 };
