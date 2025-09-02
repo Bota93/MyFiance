@@ -5,6 +5,7 @@ import withAuth from "@/components/auth/withAuth";
 import { getTransactions } from "@/services/api";
 import TransactionForm from "@/components/forms/TransactionForm";
 import Modal from "@/components/ui/Modal";
+import Header from "@/components/layout/Header";
 import { createTransaction, updateTransaction, deleteTransaction } from "@/services/api";
 
 /**
@@ -89,13 +90,10 @@ function DashboardPage() {
 
     return (
         <main className="p-4 sm:p-8 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">Mi Dashboard</h1>
-                <button onClick={() => setIsCreateModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700">
-                    Añadir Transacción
-                </button>
-            </div>
-
+            <Header
+                title="Mi Dashboard"
+                onAddTransaction={() => setIsCreateModalOpen(true)}
+            />
             <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
                 <TransactionForm onSubmit={handleCreateSubmit} onCancel={() => setIsCreateModalOpen(false)} />
             </Modal>

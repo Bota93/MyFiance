@@ -7,53 +7,56 @@ El objetivo de la aplicación es capacitar a las familias para tomar mejores dec
 ---
 ## ✨ Características Principales
 
-* **Autenticación Segura:** Creación de cuentas de usuario seguras con email y contraseña para garantizar la privacidad de los datos.
-* **Gestión de Transacciones:** Registro de nuevos ingresos y gastos con monto, fecha, descripción y categoría.
-* **Visualización de Historial:** Lista de transacciones pasadas para tener un historial completo de los movimientos financieros.
-* **Categorización Clara:** Organización de gastos e ingresos por categorías (alimentación, transporte, ocio, etc.) para entender los patrones de gasto.
-* **API Bien Estructurada:** El backend está construido con una arquitectura profesional, modular y escalable.
-* **Documentación Interactiva:** La API es autodescriptiva y se puede probar directamente desde el navegador en la ruta `/docs`.
+* **Autenticación Segura:** Sistema de registro y login basado en tokens JWT para garantizar la privacidad de los datos.
+* **Gestión CRUD Completa:** Funcionalidad completa para Crear, Leer, Actualizar y Eliminar transacciones (ingresos y gastos).
+* **"Modo Demo" para Reclutadores:** Un usuario de prueba (`demo@example.com`) cuyos datos se resetean en cada login para una demostración fácil y limpia.
+* **Arquitectura Profesional:** Backend construido con una estructura modular y escalable (routers, crud, modelos) y Frontend con una arquitectura de componentes reutilizables.
+* **Base de Datos Relacional:** Uso de SQLAlchemy como ORM para interactuar con una base de datos PostgreSQL.
+* **Documentación de API Interactiva:** API completamente documentada y lista para probar gracias a Swagger UI (`/docs`).
 
 ---
 ## 🛠️ Tecnologías Utilizadas
 
-| Área | Tecnologías |
-| :--- | :--- |
-| **Backend** | Python, FastAPI, SQLAlchemy, Uvicorn |
-| **Base de Datos** | PostgreSQL |
-| **Autenticación** | Passlib (con bcrypt), Python-JOSE (para JWT) |
-| **Validación** | Pydantic |
-| **Frontend** | Next.js, React, TypeScript *(próximamente)* |
+| Área          | Tecnologías                                       |
+| :------------ | :------------------------------------------------ |
+| **Backend** | Python, FastAPI, SQLAlchemy, Uvicorn              |
+| **Frontend** | Next.js, React, TypeScript, Tailwind CSS          |
+| **Base de Datos** | PostgreSQL                                        |
+| **Autenticación** | Passlib (con bcrypt), Python-JOSE (para JWT)      |
+| **DevOps** | Git, GitHub, Entornos Virtuales, AWS (futuro)     |
 
 ---
 ## 📂 Estructura del Proyecto (Monorepo)
 Este repositorio contiene el proyecto completo en una estructura de monorepo:
 * `/backend`: Contiene todo el código fuente de la API de FastAPI.
-* `/frontend`: Contendrá el futuro desarrollo de la interfaz de usuario con Next.js.
+* `/frontend`: Contiene el código fuente de la interfaz de usuario con Next.js.
 
 ---
-## 🚀 Puesta en Marcha (Backend)
+## 🚀 Puesta en Marcha (Entorno Local)
 
-Sigue estos pasos para levantar el servicio del backend en un entorno local.
+Sigue estos pasos para levantar el proyecto completo.
 
-1.  **Navega a la carpeta del backend:**
+### **1. Prerrequisitos**
+* Python 3.10+
+* Node.js 18+
+* PostgreSQL instalado y un servidor corriendo.
+
+### **2. Configuración del Backend**
+
+1.  **Navega a la carpeta del backend y activa el entorno virtual:**
     ```bash
     cd backend
-    ```
-
-2.  **Crea y activa el entorno virtual:**
-    ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
 
-3.  **Instala las dependencias:**
+2.  **Instala las dependencias del backend:**
     ```bash
     pip install -r requirements.txt
     ```
 
-4.  **Configura las variables de entorno:**
-    * Dentro de la carpeta `backend`, crea un archivo llamado `.env`.
+3.  **Configura las variables de entorno del backend:**
+    * Dentro de `backend/`, crea un archivo `.env`.
     * Copia el siguiente contenido y reemplaza los valores con tus credenciales:
         ```ini
         DB_USER="tu_usuario_postgres"
@@ -64,15 +67,33 @@ Sigue estos pasos para levantar el servicio del backend en un entorno local.
         SECRET_KEY="una_clave_secreta_muy_larga_generada_con_openssl"
         ```
 
-5.  **Ejecuta la aplicación:**
-    * Desde la carpeta **raíz del proyecto** (`MyFiance/`), ejecuta:
+4.  **Inicia el servidor del backend:**
+    * Abre una **nueva terminal** en la raíz del proyecto (`MyFiance/`) y ejecuta:
         ```bash
         python backend/run.py
         ```
     * La API estará disponible en `http://127.0.0.1:8000`.
 
----
-## 🗺️ RoadMap (Planes a Futuro)
+### **3. Configuración del Frontend**
 
-* **Fase 2:** Integración de datos macroeconómicos (inflación, PIB) para un análisis contextualizado.
-* **Fase 3:** Desarrollo de un modelo predictivo con IA para sugerencias personalizadas de ahorro.
+1.  **Navega a la carpeta del frontend e instala las dependencias:**
+    * Abre **otra terminal** y desde la raíz del proyecto (`MyFiance/`) ejecuta:
+        ```bash
+        cd frontend
+        npm install
+        ```
+
+2.  **Inicia el servidor del frontend:**
+    * En la misma terminal, ejecuta:
+        ```bash
+        npm run dev
+        ```
+    * La aplicación web estará disponible en `http://localhost:3000`.
+
+### **4. Probar la Aplicación (Modo Demo)**
+* Abre `http://localhost:3000` en tu navegador.
+* Ve a la página de **Login**.
+* Usa las siguientes credenciales para una demostración:
+    * **Email:** `demo@example.com`
+    * **Password:** `demopassword`
+* Cada vez que inicies sesión con este usuario, los datos se resetearán a un estado de ejemplo.
