@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { loginUser } from '@/services/api';
 
@@ -155,10 +156,13 @@ export default function LoginPage() {
             {/* --- Sección Visual (Derecha) --- */}
             <div className='hidder lg:flex w-1/2 items-center justify-center bg-indigo-50 p-12'>
                 <div className='text-center'>
-                    <img
+                    <Image
                         src="/illustration/fondo.png"
                         alt="Ilustración de una persona gestionando sus finanzas"
-                        className='max-w-md mx-auto'
+                        width={500} // El componente Image necesita width y height
+                        height={500}
+                        className='max-w-md h-auto mx-auto' // Tailwind controla el tamaño final
+                        priority // Opcional: Carga esta imagen antes
                     />
                     <h2 className='text-3xl font-bold text-gray-800 mt-8'>
                         Toma el control de tu dinero
