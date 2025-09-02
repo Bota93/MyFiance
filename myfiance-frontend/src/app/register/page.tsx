@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from 'next/image';
 import { registerUser } from '@/services/api'; // Importamos la función de la API
 
 /**
@@ -121,11 +122,14 @@ export default function RegisterPage() {
             {/* --- COLUMNA DERECHA (VISUAL) --- */}
             <div className="hidden lg:flex w-1/2 items-center justify-center bg-indigo-50 p-12">
                 <div className="text-center">
-                    <img
-                        src="/illustration/fondo_registro.png"
-                        alt="Ilustración de planificación financiera"
-                        className="max-w-md mx-auto"
-                    />
+                    <Image
+                                            src="/illustration/fondo_registro.png"
+                                            alt="Ilustración de una persona gestionando sus finanzas"
+                                            width={500} // El componente Image necesita width y height
+                                            height={500}
+                                            className='max-w-md h-auto mx-auto' // Tailwind controla el tamaño final
+                                            priority // Opcional: Carga esta imagen antes
+                                        />
                     <h2 className="text-3xl font-bold text-gray-800 mt-8">
                         Tu primer paso hacia la libertad financiera
                     </h2>
