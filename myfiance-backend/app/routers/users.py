@@ -16,26 +16,43 @@ router = APIRouter(
 @router.post("/register", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 def create_user_endpoint(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
-    Endpoint para registrar un nuevo usuario.
+    Crea un nuevo usuario.
+    Endpoint para registrar un nuevo usuario. Comprueba si el email ya existe antes de la creación.
+    La contraseña se hashea antes de guardarla en la base de datos.
+
+    Args:
+        user (schemas.UserCreate): Datos del nuevo usuario (email, contraseña).
+        db (Session): Dependencia de la sesión de la base de datos.
+
+    Returns:
+        schemas.UserRead: Los datos del usuario creado (sin la contraseña).
     """
     db_user = auth.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
     
-    # Hasheamos la contraseña antes de pasarla a la función de creación
     hashed_password = auth.get_password_hash(user.password)
     
-    # Llamamos a la función del CRUD para crear el usuario
     return crud.create_user(db=db, user=user, hashed_password=hashed_password)
+
 
 @router.post("/token", response_model=schemas.Token)
 def login_for_access_token_endpoint(
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
-    Endpoint para iniciar sesión y obtener un token de acceso.
+    Autentica a un usuario y devuelve un token de acceso JWT.
+    Verifica las credenciales del usuario. Si el usuario es 'demo@example.com',
+    reinicia sus datos para proporcionar una experiencia de demostración limpia.
+    
+    Args:
+        db (Session): Dependencia de la sesión de la base de datos.
+        form_data (OAuth2PasswordRequestForm): Datos del formulario de login (username, password).
+        
+    Returns:
+        schemas.Token: Un objeto que contiene el access_token y el token_type
     """
-    #Verificamos si el usuario existe y si la contraseña es correcta
+
     user = auth.get_user_by_email(db, email=form_data.username)
     if not user or not auth.verify_password(form_data.password, user.password_hash):
         raise HTTPException(
@@ -43,8 +60,10 @@ def login_for_access_token_endpoint(
             detail="Email o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    # Creamos el token de acceso
+
+    if user.email == "demo@example.com":
+        crud.reset_demo_user_data(db=db, user_id=user.user_id)
+
     access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires

@@ -1,2 +1,10 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    --primary: #084C61;
+    --accent-green: #177E89;
+    --accent-red: #DB3A34;
+    --dark: #323031;
+  }
+}
