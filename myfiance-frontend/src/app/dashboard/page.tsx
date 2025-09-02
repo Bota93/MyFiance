@@ -2,46 +2,43 @@
 
 import { useEffect, useState, useCallback } from "react";
 import withAuth from "@/components/auth/withAuth";
-import { getTransactions } from "@/services/api";
+import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/services/api";
 import TransactionForm from "@/components/forms/TransactionForm";
 import Modal from "@/components/ui/Modal";
 import Header from "@/components/layout/Header";
-import { createTransaction, updateTransaction, deleteTransaction } from "@/services/api";
 
+// CORRECCIÓN 1: Interfaz actualizada para incluir 'category'
 interface Transaction {
     transaction_id: number;
     description: string;
     transaction_date: string;
     amount: number;
     type: 'income' | 'expense';
+    category: { // La API devuelve un objeto 'category'
+        category_id: number;
+        category_name: string;
+    };
 }
 
-type TransactionFormData = Omit<Transaction, 'transaction_id'>;
-/**
- * Componente principal de la página del Dashboard.
- * Actúa como el orquestador central para mostrar, crear, editar y eliminar transacciones.
- * Está protegido por el HOC 'withAuth'.
- */
+// Este tipo describe los datos que el formulario envía a la API
+type TransactionFormData = {
+    amount: number;
+    description: string;
+    transaction_date: string;
+    type: 'income' | 'expense';
+    category_id: number;
+}
+
 function DashboardPage() {
-    // --- ESTADOS DEL COMPONENTE ---
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-
-    // Esados para controlar la visibilidad de los modales
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-    // Estado para guardar la transacción que se está editando actualmente
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-    /**
-     * Obtiene la lista de transacciones del usuario desde la API y actualiza el estado.
-     * Se envuelve en useCallBack para optimización, evitando que la función se recree en cada render.
-     */
     const fetchTransactions = useCallback(async () => {
         try {
-            // No iniciamos la carga si ya lo estamos haciendo
             if (!isLoading) setIsLoading(true);
             const data = await getTransactions();
             setTransactions(data);
@@ -53,22 +50,16 @@ function DashboardPage() {
         }
     }, [isLoading]);
 
-    // Efecto para cargar los datos iniciales cuando el componente se monta.
     useEffect(() => {
         fetchTransactions();
     }, [fetchTransactions]);
 
-    /**
-     * Maneja la eliminación de una transacción.
-     * @param {number} transactionId - El ID de la transacción a eliminar.
-     */
     const handleDelete = async (transactionId: number) => {
         if (!window.confirm('¿Estás seguro de que quieres eliminar esta transacción?')) {
             return;
         }
         try {
             await deleteTransaction(transactionId);
-            // Actualiza el estado local para reflejar el cambio instantáneamente
             setTransactions(current => current.filter(tx => tx.transaction_id !== transactionId));
         } catch (err) {
             const error = err as Error;
@@ -76,37 +67,40 @@ function DashboardPage() {
         }
     };
 
-    /**
-     * Maneja el envío del formulario de creación. Se pasa como prop al TransactionForm.
-     * @param formData 
-     */
     const handleCreateSubmit = async (formData: TransactionFormData) => {
-        await createTransaction(formData);
-        fetchTransactions(); // Recarga la lista para mostrar la nueva transacción
-        setIsCreateModalOpen(false);
+        try {
+            await createTransaction(formData);
+            fetchTransactions();
+            setIsCreateModalOpen(false);
+        } catch (err) {
+            const error = err as Error;
+            setError(error.message || 'No se pudo crear la transacción.');
+        }
     };
 
-    /**
-     * Maneja el envío del formulario de edición. Se pasa como prop al TransactionForm.
-     */
     const handleUpdateSubmit = async (formData: TransactionFormData) => {
         if (!editingTransaction) return;
-        await updateTransaction(editingTransaction.transaction_id, formData);
-        fetchTransactions(); // Recarga la lista para mostrar los cambios
-        setIsEditModalOpen(false); // Cierra el modal
+        try {
+            await updateTransaction(editingTransaction.transaction_id, formData);
+            fetchTransactions();
+            setIsEditModalOpen(false);
+        } catch (err) {
+            const error = err as Error;
+            setError(error.message || 'No se pudo actualizar la transacción.');
+        }
     };
 
-    if (isLoading) return <p className="p-8">Cargando...</p>;
-    if (error) return <p className="p-8 text-red-500">Error: {error}</p>;
+    if (isLoading) return <p className="p-8 text-center">Cargando...</p>;
+    if (error) return <p className="p-8 text-center text-red-500">Error: {error}</p>;
 
     return (
         <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
             <div className="max-w-4xl mx-auto">
-
                 <Header
                     title="Mi Dashboard"
                     onAddTransaction={() => setIsCreateModalOpen(true)}
                 />
+
                 <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
                     <TransactionForm onSubmit={handleCreateSubmit} onCancel={() => setIsCreateModalOpen(false)} />
                 </Modal>
@@ -129,7 +123,7 @@ function DashboardPage() {
                                 <li key={tx.transaction_id} className="flex justify-between items-center border-b py-3 last:border-b-0 hover:bg-gray-50 transition-colors duration-150">
                                     <div>
                                         <p className="font-medium text-gray-900">{tx.description}</p>
-                                        <p className="text-sm text-gray-500">{tx.transaction_date}</p>
+                                        <p className="text-sm text-gray-500">{new Date(tx.transaction_date).toLocaleDateString()}</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <p className={`font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
