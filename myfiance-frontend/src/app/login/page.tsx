@@ -40,7 +40,8 @@ export default function LoginPage() {
                 localStorage.setItem('authToken', data.access_token);
                 router.push('/dashboard');
             }
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as Error;
             setError(error.message);
         }
     };
@@ -61,7 +62,8 @@ export default function LoginPage() {
                 localStorage.setItem('authToken', data.access_token);
                 router.push('/dashboard');
             }
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as Error;
             setError(error.message);
         } finally {
             setIsLoading(false);

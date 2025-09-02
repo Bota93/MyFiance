@@ -8,6 +8,15 @@ import Modal from "@/components/ui/Modal";
 import Header from "@/components/layout/Header";
 import { createTransaction, updateTransaction, deleteTransaction } from "@/services/api";
 
+interface Transaction {
+    transaction_id: number;
+    description: string;
+    transaction_date: string;
+    amount: number;
+    type: 'income' | 'expense';
+}
+
+type TransactionFormData = Omit<Transaction, 'transaction_id'>;
 /**
  * Componente principal de la página del Dashboard.
  * Actúa como el orquestador central para mostrar, crear, editar y eliminar transacciones.
@@ -15,7 +24,7 @@ import { createTransaction, updateTransaction, deleteTransaction } from "@/servi
  */
 function DashboardPage() {
     // --- ESTADOS DEL COMPONENTE ---
-    const [transactions, setTransactions] = useState([]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -24,7 +33,7 @@ function DashboardPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Estado para guardar la transacción que se está editando actualmente
-    const [editingTransaction, setEditingTransaction] = useState(null);
+    const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
     /**
      * Obtiene la lista de transacciones del usuario desde la API y actualiza el estado.
@@ -36,8 +45,9 @@ function DashboardPage() {
             if (!isLoading) setIsLoading(true);
             const data = await getTransactions();
             setTransactions(data);
-        } catch (err: any) {
-            setError(err.message || 'Ocurrió un error inesperado.');
+        } catch (err) {
+            const error = err as Error;
+            setError(error.message || 'Ocurrió un error inesperado.');
         } finally {
             setIsLoading(false);
         }
@@ -59,9 +69,10 @@ function DashboardPage() {
         try {
             await deleteTransaction(transactionId);
             // Actualiza el estado local para reflejar el cambio instantáneamente
-            setTransactions(current => current.filter((tx: any) => tx.transaction_id !== transactionId));
-        } catch (err: any) {
-            setError(err.message || 'No se pudo eliminar la transacción.');
+            setTransactions(current => current.filter(tx => tx.transaction_id !== transactionId));
+        } catch (err) {
+            const error = err as Error;
+            setError(error.message || 'No se pudo eliminar la transacción.');
         }
     };
 
@@ -69,7 +80,7 @@ function DashboardPage() {
      * Maneja el envío del formulario de creación. Se pasa como prop al TransactionForm.
      * @param formData 
      */
-    const handleCreateSubmit = async (formData: any) => {
+    const handleCreateSubmit = async (formData: TransactionFormData) => {
         await createTransaction(formData);
         fetchTransactions(); // Recarga la lista para mostrar la nueva transacción
         setIsCreateModalOpen(false);
@@ -78,9 +89,9 @@ function DashboardPage() {
     /**
      * Maneja el envío del formulario de edición. Se pasa como prop al TransactionForm.
      */
-    const handleUpdateSubmit = async (formData: any) => {
+    const handleUpdateSubmit = async (formData: TransactionFormData) => {
         if (!editingTransaction) return;
-        await updateTransaction((editingTransaction as any).transaction_id, formData);
+        await updateTransaction(editingTransaction.transaction_id, formData);
         fetchTransactions(); // Recarga la lista para mostrar los cambios
         setIsEditModalOpen(false); // Cierra el modal
     };
@@ -114,7 +125,7 @@ function DashboardPage() {
                         <p className="text-gray-500">No tienes transacciones todavía.</p>
                     ) : (
                         <ul>
-                            {transactions.map((tx: any) => (
+                            {transactions.map((tx) => (
                                 <li key={tx.transaction_id} className="flex justify-between items-center border-b py-3 last:border-b-0 hover:bg-gray-50 transition-colors duration-150">
                                     <div>
                                         <p className="font-medium text-gray-900">{tx.description}</p>

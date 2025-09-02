@@ -38,7 +38,8 @@ export default function RegisterPage() {
             console.log('Usuario creado: ', userData);
             setEmail('');
             setPassword('');
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as Error;
             setError(error.message);
         }
     };

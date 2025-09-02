@@ -3,23 +3,48 @@
 import { useState, useEffect } from 'react';
 import { getCategories } from '@/services/api';
 
-// Definimos los tipos para las props que el componente recibirá
-interface TransactionFormProps {
-    transactionToEdit?: any; // La transacción a editar (opcional)
-    onSubmit: (formData: any) => Promise<void>; // Función a ejecutar al enviar
-    onCancel: () => void; // Función para el botón de cancelar
+// --- DEFINICIÓN DE TIPOS E INTERFACES ---
+
+interface Category {
+    category_id: number;
+    category_name: string;
 }
 
-/**
- * Formulario controlado y reutilizable para crear o editar una transacción.
- * Se adapta automáticamente si recibe una transacción para editar.
- * Carga las categorías de la API y notifica al componente padre sobre el envío o cancelación.
- * @param {TransactionFormProps} props - Las propiedades del componente. 
- * @returns 
- */
+interface Transaction {
+    transaction_id: number;
+    description: string;
+    transaction_date: string;
+    amount: number;
+    type: 'income' | 'expense';
+    category: Category;
+}
+
+// Este tipo representa los datos del formulario (los valores son strings)
+interface FormDataState {
+    amount: string;
+    description: string;
+    transaction_date: string;
+    category_id: string;
+    type: 'income' | 'expense';
+}
+
+interface SubmitData {
+    amount: number;
+    description: string;
+    transaction_date: string;
+    category_id: number;
+    type: 'income' | 'expense';
+}
+
+interface TransactionFormProps {
+    transactionToEdit?: Transaction | null;
+    onSubmit: (formData: SubmitData) => Promise<void>;
+    onCancel: () => void;
+}
+
+
 export default function TransactionForm({ transactionToEdit, onSubmit, onCancel }: TransactionFormProps) {
-    // Estado unificado para todos los campos del formulario
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormDataState>({
         amount: '',
         description: '',
         transaction_date: '',
@@ -27,37 +52,26 @@ export default function TransactionForm({ transactionToEdit, onSubmit, onCancel 
         type: 'expense',
     });
 
-    // Estado para la lista de categorías cargadas desde la API
-    const [categories, setCategories] = useState([]);
-    // Estado para mostrar errores relacionados con el envío del formulario.
+    const [categories, setCategories] = useState<Category[]>([]);
     const [error, setError] = useState('');
-    const isEditMode = !!transactionToEdit; // Variable para saber si estamos en modo edición
+    const isEditMode = !!transactionToEdit;
 
-    /**
-     * Efecto que se ejecuta cuando el componente está en modo "edición".
-     * Rellena los campos del formulario con los datos de la transacción existente.
-     */
     useEffect(() => {
-        if (isEditMode) {
+        if (isEditMode && transactionToEdit) {
             setFormData({
-                amount: transactionToEdit.amount,
+                amount: String(transactionToEdit.amount),
                 description: transactionToEdit.description,
-                // El formato de fecha de la DB (YYYY-MM-DD) es compatible con el input type="date"
-                transaction_date: transactionToEdit.transaction_date,
-                category_id: transactionToEdit.category.category_id,
+                transaction_date: transactionToEdit.transaction_date.split('T')[0],
+                category_id: String(transactionToEdit.category.category_id),
                 type: transactionToEdit.type,
             });
         }
     }, [transactionToEdit, isEditMode]);
 
-    /**
-     * Efecto que se ejecuta una sola vez al montar el componente para obtener
-     * la lisa de categorías desde la API y poblar el desplegable.
-     */
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const data = await getCategories();
+                const data: Category[] = await getCategories();
                 setCategories(data);
             } catch (error) {
                 console.error('No se pudieron cargar las categorías:', error);
@@ -66,27 +80,33 @@ export default function TransactionForm({ transactionToEdit, onSubmit, onCancel 
         fetchCategories();
     }, []);
 
-    /**
-     * Manejador genérico que actualiza el estado del formulario
-     * cada vez que el usuario escribe en un campo.
-     */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prevState => ({ ...prevState, [name]: value }));
     };
 
-    /**
-     * Maneja el evento de envío del formulario.
-     * Llama a la función 'onSubmit' proporcionada por el componente padre
-     * y maneja los posibles errores.
-     */
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
+
+        const dataToSubmit: SubmitData = {
+            description: formData.description,
+            transaction_date: formData.transaction_date,
+            type: formData.type,
+            amount: parseFloat(formData.amount),
+            category_id: parseInt(formData.category_id, 10),
+        };
+
+        if (isNaN(dataToSubmit.amount) || isNaN(dataToSubmit.category_id)) {
+            setError('Por favor, introduce un monto y una categoría válidos.');
+            return;
+        }
+
         try {
-            await onSubmit(formData);
-        } catch (err: any) {
-            setError(err.message);
+            await onSubmit(dataToSubmit);
+        } catch (err) {
+            const error = err as Error;
+            setError(error.message);
         }
     };
 
@@ -131,7 +151,7 @@ export default function TransactionForm({ transactionToEdit, onSubmit, onCancel 
                         <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">Categoría</label>
                         <select name="category_id" id="category_id" value={formData.category_id} onChange={handleChange} required className="mt-1 w-full p-2 border border-gray-300 rounded-md">
                             <option value="" disabled>Selecciona una categoría</option>
-                            {categories.map((cat: any) => (<option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>))}
+                            {categories.map((cat: Category) => (<option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>))}
                         </select>
                     </div>
                 </div>
