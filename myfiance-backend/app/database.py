@@ -7,14 +7,19 @@ from sqlalchemy.ext.declarative import declarative_base
 # Carga las variables del archivo .env
 load_dotenv()
 
-# Obtén las credenciales de la base de datos
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-DB_PORT = os.getenv("DB_PORT")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Obtén las credenciales de la base de datos
+if DATABASE_URL is None:
+    DB_USER = os.getenv("DB_USER")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_HOST = os.getenv("DB_HOST")
+    DB_NAME = os.getenv("DB_NAME")
+    DB_PORT = os.getenv("DB_PORT")
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+if not DATABASE_URL:
+    raise ValueError("No se pudo configurar la URL de la base de datos. Asegúrate de que las variables de entorno están definidas.")
 
 # --- Configuración de SQLALchemy ---
 
