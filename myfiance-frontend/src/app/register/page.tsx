@@ -112,7 +112,7 @@ export default function RegisterPage() {
                     {/* Enlace a la página de login */}
                     <p className='text-center text-sm text-gray-600 mt-6'>
                         ¿Ya tienes una cuenta?{' '}
-                        <Link href="/login" className='font-medium text-indigo-600 hover:underline'>
+                        <Link href="/(login)" className='font-medium text-indigo-600 hover:underline'>
                             Inicia sesión aquí
                         </Link>
                     </p>
