@@ -31,7 +31,7 @@ interface TokenResponse {
     token_type: string;
 }
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
