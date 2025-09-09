@@ -7,20 +7,19 @@ import TransactionForm from "@/components/forms/TransactionForm";
 import Modal from "@/components/ui/Modal";
 import Header from "@/components/layout/Header";
 
-// CORRECCIÓN 1: Interfaz actualizada para incluir 'category'
+// --- INTERFACES (Sin cambios) ---
 interface Transaction {
     transaction_id: number;
     description: string;
     transaction_date: string;
     amount: number;
     type: 'income' | 'expense';
-    category: { // La API devuelve un objeto 'category'
+    category: {
         category_id: number;
         category_name: string;
     };
 }
 
-// Este tipo describe los datos que el formulario envía a la API
 type TransactionFormData = {
     amount: number;
     description: string;
@@ -28,6 +27,41 @@ type TransactionFormData = {
     type: 'income' | 'expense';
     category_id: number;
 }
+
+
+// --- NUEVO COMPONENTE DE ESQUELETO DE CARGA ---
+const DashboardSkeleton = () => (
+    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+        <div className="max-w-4xl mx-auto animate-pulse"> {/* Animación de pulso */}
+            {/* Esqueleto del Header */}
+            <header className="flex justify-between items-center mb-8">
+                <div className="h-8 bg-gray-200 rounded-md w-1/3"></div>
+                <div className="flex items-center gap-4">
+                    <div className="h-10 bg-gray-200 rounded-md w-40"></div>
+                    <div className="h-10 bg-gray-200 rounded-md w-32"></div>
+                </div>
+            </header>
+
+            {/* Esqueleto de la Tarjeta de Transacciones */}
+            <div className="bg-white p-6 rounded-xl shadow-lg mt-8">
+                <div className="h-6 bg-gray-200 rounded-md w-1/2 mb-6"></div>
+                <ul className="space-y-4">
+                    {/* Repetimos una fila de esqueleto 3 veces para dar sensación de contenido */}
+                    {[1, 2, 3].map((i) => (
+                        <li key={i} className="flex justify-between items-center border-b py-3 last:border-b-0">
+                            <div>
+                                <div className="h-4 bg-gray-200 rounded-md w-48 mb-2"></div>
+                                <div className="h-3 bg-gray-200 rounded-md w-24"></div>
+                            </div>
+                            <div className="h-6 bg-gray-200 rounded-md w-20"></div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    </main>
+);
+
 
 function DashboardPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -39,7 +73,7 @@ function DashboardPage() {
 
     const fetchTransactions = useCallback(async () => {
         try {
-            if (!isLoading) setIsLoading(true);
+            // No es necesario volver a poner isLoading a true si ya lo está
             const data = await getTransactions();
             setTransactions(data);
         } catch (err) {
@@ -48,7 +82,7 @@ function DashboardPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [isLoading]);
+    }, []); // Dependencia de isLoading eliminada para evitar bucles
 
     useEffect(() => {
         fetchTransactions();
@@ -90,7 +124,10 @@ function DashboardPage() {
         }
     };
 
-    if (isLoading) return <p className="p-8 text-center">Cargando...</p>;
+    // --- CAMBIO PRINCIPAL AQUÍ ---
+    // Si está cargando, muestra el esqueleto en lugar del texto "Cargando..."
+    if (isLoading) return <DashboardSkeleton />;
+
     if (error) return <p className="p-8 text-center text-red-500">Error: {error}</p>;
 
     return (
