@@ -22,7 +22,7 @@ export default function Header({ title, onAddTransaction }: HeaderProps) {
      */
     const handleLogout = () => {
         localStorage.removeItem('authToken');
-        router.push('/');
+        window.location.href = '/';
     };
 
     return (
