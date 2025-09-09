@@ -23,7 +23,7 @@ const withAuth = <P extends object>(WrappedComponent: ComponentType<P>) => {
             const token = localStorage.getItem('authToken');
             if (!token) {
                 // Si no hay token, se inicia la redirección a login.
-                router.push('/');
+                router.push('/(login)');
             } else {
                 // Si se encuentra un token, se marca al usuario como autenticado.
                 setIsAuthenticated(true);
